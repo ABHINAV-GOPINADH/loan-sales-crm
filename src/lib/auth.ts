@@ -3,6 +3,13 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+// Guarantee NEXTAUTH_URL is never empty string or unparseable
+if (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.trim() === "") {
+  process.env.NEXTAUTH_URL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+}
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",

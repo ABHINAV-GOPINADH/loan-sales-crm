@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Enterprise CRM system for loan processing, lead management, and call center performance.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({
   children,
 }: {
