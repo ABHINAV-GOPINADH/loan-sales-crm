@@ -31,7 +31,7 @@ The **Loan Sales & Call Centre CRM** bridges customer loan requirements with par
 
 - **Desktop Portal URL:** `http://localhost:3000` (or deployed live link)
 - **Mobile Admin UI URL:** `http://localhost:3000/mobile/dashboard` (or deployed live link + `/mobile`)
-- **Public GitHub Repository:** [github.com/your-username/loan-sales-crm](https://github.com)
+- **Public GitHub Repository:** [https://github.com/ABHINAV-GOPINADH/loan-sales-crm](https://github.com/ABHINAV-GOPINADH/loan-sales-crm)
 
 ---
 
