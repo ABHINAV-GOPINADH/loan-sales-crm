@@ -1,0 +1,129 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int               @id @default(autoincrement())
+  name         String
+  email        String            @unique
+  password     String
+  role         String            @default("STAFF") // ADMIN, STAFF
+  phone        String?
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  leads        Lead[]            @relation("AssignedLeads")
+  callLogs     CallLog[]
+  dailyTargets DailyTarget[]
+  applications LoanApplication[]
+}
+
+model Lead {
+  id           Int               @id @default(autoincrement())
+  name         String
+  phone        String
+  email        String?
+  city         String?
+  loanAmount   Float?
+  source       String            @default("MANUAL") // MANUAL, BULK_UPLOAD
+  status       String            @default("NEW") // NEW, CONTACTED, INTERESTED, NOT_INTERESTED, DOCS_PENDING, DOCS_COLLECTED, APPLIED, APPROVED, DISBURSED, REJECTED, CLOSED
+  assignedToId Int?
+  assignedTo   User?             @relation("AssignedLeads", fields: [assignedToId], references: [id])
+  assignedAt   DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  callLogs     CallLog[]
+  documents    Document[]
+  applications LoanApplication[]
+}
+
+model CallLog {
+  id           Int       @id @default(autoincrement())
+  leadId       Int
+  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id])
+  callStatus   String // CONNECTED, NO_ANSWER, BUSY, WRONG_NUMBER, CALLBACK
+  remarks      String
+  interested   Boolean   @default(false)
+  followUpDate DateTime?
+  calledAt     DateTime  @default(now())
+}
+
+model Document {
+  id           Int       @id @default(autoincrement())
+  leadId       Int
+  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  docType      String // AADHAAR, PAN, SALARY_SLIP, BANK_STATEMENT, OTHER
+  fileName     String
+  fileUrl      String
+  status       String    @default("PENDING") // PENDING, VERIFIED, REJECTED
+  remarks      String?
+  verifiedBy   String?
+  uploadedAt   DateTime  @default(now())
+  verifiedAt   DateTime?
+}
+
+model Bank {
+  id            Int          @id @default(autoincrement())
+  name          String       @unique
+  contactPerson String?
+  contactPhone  String?
+  contactEmail  String?
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  schemes       LoanScheme[]
+}
+
+model LoanScheme {
+  id            Int               @id @default(autoincrement())
+  bankId        Int
+  bank          Bank              @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  name          String
+  loanType      String // PERSONAL, HOME, VEHICLE, BUSINESS, EDUCATION
+  minInterest   Float
+  maxInterest   Float
+  minAmount     Float
+  maxAmount     Float
+  tenureMonths  Int
+  processingFee Float?
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  applications  LoanApplication[]
+}
+
+model LoanApplication {
+  id             Int        @id @default(autoincrement())
+  leadId         Int
+  lead           Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  schemeId       Int
+  scheme         LoanScheme @relation(fields: [schemeId], references: [id])
+  handledById    Int
+  handledBy      User       @relation(fields: [handledById], references: [id])
+  appliedAmount  Float
+  approvedAmount Float?
+  status         String     @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, APPROVED, DISBURSED, REJECTED, CLOSED
+  bankRefNumber  String?
+  adminRemarks   String?
+  appliedAt      DateTime   @default(now())
+  approvedAt     DateTime?
+  disbursedAt    DateTime?
+  updatedAt      DateTime   @updatedAt
+}
+
+model DailyTarget {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            String // YYYY-MM-DD
+  targetCalls     Int      @default(100)
+  completedCalls  Int      @default(0)
+  interestedCount Int      @default(0)
+
+  @@unique([userId, date])
+}
